@@ -23,3 +23,5 @@ def connect():
         conn.close()
         print('Connection closed.')
 
+
+connect()
