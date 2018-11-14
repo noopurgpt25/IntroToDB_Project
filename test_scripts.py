@@ -28,10 +28,8 @@ def connect():
 
 
 def print_table(cursor,table_name):
-    cursor.execute("SELECT * FROM "+table_name)
- 
+    cursor.execute("SELECT * FROM "+table_name) 
     row = cursor.fetchone()
- 
     while row is not None:
         print(row)
         row = cursor.fetchone()
