@@ -19,19 +19,23 @@ def connect():
         print(error)
     return conn
  
-
-
+#####################################################################################################################
+###########################                          Notes                             ##############################
+## 1. No need to call Student menu from subsections explicitely. Automatic return is implemented with while loop 
+## 2. SQL commands are yet to be written
+##
+#####################################################################################################################
 class UserClass:
 	def __init__(self,cursor,credentials):
 		self.username   = credentials[0]
 		self.stdnt_name = credentials[1]
 		self.password   = credentials[2]
 		self.cursor     = cursor
-	def main_menu():
+	def student_menu():
+		print ('\n\n~~~~~~~~~~~~~~\n\nStudent Menu\n')
 		tryoptions  = True
-		course_list = self.current_courses()
 		while tryoptions:
-			print ('Current Courses: \t'+', '.join(course_list)+'\n')
+			print ('Current Courses: \t'+', '.join(self.current_courses())+'\n')
 
 			onscreen = 	'Transcript 	\t 1 \n \
 					Enroll		\t 2 \n \
@@ -44,18 +48,20 @@ class UserClass:
 			elif choice == 3:	self.Details()
 			else		:	print ('Invalid option. Try again.')
 
-	def current_courses()
+	def current_courses(self):
 		sql_script =    'select * from -----------'
+		self.cursor.execute(sql_script)
+		return current_courses 			# As a list of strings
 		
-	def Enroll():
+	def Enroll(self):
 		sql_script = 	'select * from -----------'
+		self.cursor.execute(sql_script)
 
-
-	def Details():
+	def Details(self):
                 sql_script =    'select * from -----------'
-		
+		self.cursor.execute(sql_script)
 
-	def Transcript()
+	def Transcript(self):
 		sql_script = 	'select * from transcript \
 				where StudId = '+str(self.username)+\
 				' order by Year ASC, Semester ASC'
@@ -86,7 +92,7 @@ def student_login(cursor):
 				if srow:
 					print ('Login success')
 					trylogin = 0
-					return (srow)
+					return UserClass(cursor,srow)
 				else:
 					print ('Credentials does not match')
 			except:
@@ -107,16 +113,14 @@ def main():
 
 	trylogin = 1
 	while trylogin:
-	        credentials = student_login(cursor)
-        	if credentials:
-                	user = UserClass(cursor,credentials)
-                	user.main_menu()
+	        user = student_login(cursor)
+        	if user:  user.student_menu()
 		trylogin = input('Continue to login screen again? (yes/no) == (1/0)')
         print ('Exiting the scripts')
 
 
         cursor.close()
-        user.cursor.close()
+        #user.cursor.close()
         conn.close()
         print ('connection closed')
 
