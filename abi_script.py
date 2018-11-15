@@ -1,7 +1,7 @@
 from mysql.connector import MySQLConnection, Error
 from python_mysql_dbconfig import read_db_config
 import getpass
-
+import time
  
 def connect():
     db_config = read_db_config()
@@ -18,13 +18,17 @@ def connect():
     except Error as error:
         print(error)
     return conn
+
+
+
  
-#####################################################################################################################
-###########################                          Notes                             ##############################
-## 1. No need to call Student menu from subsections explicitely. Automatic return is implemented with while loop 
-## 2. SQL commands are yet to be written
-##
-#####################################################################################################################
+#######################################################################
+###########           Notes                             ###############
+## 1. No need to call Student menu from subsections explicitely.    ###
+##    Automatic return is implemented with while loop               ###
+## 2. SQL commands are yet to be written                            ###
+#######################################################################
+
 class UserClass:
 	def __init__(self,cursor,credentials):
 		self.username   = credentials[0]
@@ -35,9 +39,11 @@ class UserClass:
 		print ('\n\n~~~~~~~~~~~~~~\n\nStudent Menu\n')
 		tryoptions  = True
 		while tryoptions:
-			print ('Current Courses: \t'+', '.join(self.current_courses())+'\n')
-
-			onscreen = 	'Transcript 	\t 1 \n \
+			print ('Current Courses: \n ------------')
+			print ('\n'.join(['\t'.join(item) for item in current_courses]))
+			print ('------------ \n\n')
+			onscreen = 	'Menu Options \n ------ \n \
+					Transcript 	\t 1 \n \
 					Enroll		\t 2 \n \
 					Personal Info 	\t 3 \n \
 					Logout 		\t 0 \n'
@@ -49,8 +55,17 @@ class UserClass:
 			else		:	print ('Invalid option. Try again.')
 
 	def current_courses(self):
-		sql_script =    'select * from -----------'
+		dt = datetime.datetime.now()
+		current_Q = 'Q'+str(dt.month/3 + min([1,(dt.month%3)]))
+		sql_script =    'select UoSCode, UoSName from  unitofstudy \
+				where UoSCode IN (select distinct UoSCode \
+							from transcript \
+							where StudId=3213 \
+       							and Semester="Q1" \
+        						and Year=2018)'
 		self.cursor.execute(sql_script)
+		(current_courses
+		('\n'.join(['\t'.join(item) for item in currc]))
 		return current_courses 			# As a list of strings
 		
 	def Enroll(self):
