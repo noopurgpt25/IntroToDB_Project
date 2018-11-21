@@ -30,17 +30,18 @@ def connect():
 #######################################################################
 
 class UserClass:
-	def __init__(self,cursor,credentials):
+	def __init__(self,cursor,conn,credentials):
 		self.username   = credentials[0]
 		self.stdnt_name = credentials[1]
 		self.password   = credentials[2]
 		self.cursor     = cursor
+		self.conn	= conn
 	def student_menu():
 		print ('\n\n~~~~~~~~~~~~~~\n\nStudent Menu\n')
 		tryoptions  = True
 		while tryoptions:
 			print ('Current Courses: \n ------------')
-			print ('\n'.join(['\t'.join(item) for item in current_courses]))
+			print ('\n'.join(['\t'.join(item) for item in self.current_courses()]))
 			print ('------------ \n\n')
 			onscreen = 	'Menu Options \n ------ \n \
 					Transcript 	\t 1 \n \
@@ -56,13 +57,13 @@ class UserClass:
 
 	def current_courses(self):
 		dt = datetime.datetime.now()
-		current_Q = 'Q'+str(dt.month/3 + min([1,(dt.month%3)]))
+		current_Q = 'Q'+str(int(round(dt.month/3 + min([1,(dt.month%3)]))))
 		sql_script =    'select UoSCode, UoSName from  unitofstudy \
 				where UoSCode IN (select distinct UoSCode \
 							from transcript \
-							where StudId=3213 \
-       							and Semester="Q1" \
-        						and Year=2018)'
+							where StudId='+self.username+' \
+       							and Semester='+current_Q+' \
+        						and Year='+str(dt.year)+')'
 		self.cursor.execute(sql_script)
 		(current_courses
 		('\n'.join(['\t'.join(item) for item in currc]))
@@ -71,13 +72,14 @@ class UserClass:
 	def Enroll(self):
 		sql_script = 	'select * from -----------'
 		self.cursor.execute(sql_script)
+		self.conn.commit()
 
 	def Details(self):
                 sql_script =    'select * from -----------'
 		self.cursor.execute(sql_script)
 
 	def Transcript(self):
-		sql_script = 	'select * from transcript \
+		sql_script = 	'select Year,Semester,UoSCode,Grade from transcript \
 				where StudId = '+str(self.username)+\
 				' order by Year ASC, Semester ASC'
 		self.cursor.execute(sql_script)
@@ -85,12 +87,35 @@ class UserClass:
 		if not transcript:
 			print ('No transcript records')
 		else:
+			print ('\t'.join(['Year','Semester','CourseCode','Grade']))
 			for item in transcript:
 				print '\t'.join(item[1:])
+			
+			printcourse = True
+			while printcourse:
+				onscreen =	' Options \n ------ \n \
+                                	        Enter course code for course details \n \
+                                        	Enter 0 for returning to Student Menu'
+				course_code = raw_input(onscreen)
+				if course_code in [item[0] for item in transcript]:
+					sql_script = 'select * from unitofstudy \
+							where UoSCode='+course_code
+					self.cursor.execute(sql_script)
+					crow = self.cursor.fetchall()
+					if not crow:
+						print ('Internal error: Course does not exist')
+					else:
+						print ('Course Code {} \t DeptID {} \t Course_Name {} \t Credits {}'.\
+							format(crow[0],crow[1],crow[2],crow[3]))
+				elif course_code == '0':
+					printcourse = False
+				else:
+					print ('Invalid option/course. Try again.')
+		
 
 
 
-def student_login(cursor):
+def student_login(cursor,conn):
 	print ('Student Login\n')
 	trylogin = 1
 	while trylogin:
@@ -107,7 +132,7 @@ def student_login(cursor):
 				if srow:
 					print ('Login success')
 					trylogin = 0
-					return UserClass(cursor,srow)
+					return UserClass(cursor,conn,srow)
 				else:
 					print ('Credentials does not match')
 			except:
@@ -128,7 +153,7 @@ def main():
 
 	trylogin = 1
 	while trylogin:
-	        user = student_login(cursor)
+	        user = student_login(cursor,conn)
         	if user:  user.student_menu()
 		trylogin = input('Continue to login screen again? (yes/no) == (1/0)')
         print ('Exiting the scripts')
