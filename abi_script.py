@@ -2,7 +2,7 @@ from mysql.connector import MySQLConnection, Error
 from python_mysql_dbconfig import read_db_config
 import getpass
 import time
- 
+
 def connect():
     db_config = read_db_config()
 
@@ -14,14 +14,14 @@ def connect():
             print('connection established.')
         else:
             print('connection failed.')
- 
+
     except Error as error:
         print(error)
     return conn
 
 
 
- 
+
 #######################################################################
 ###########           Notes                             ###############
 ## 1. No need to call Student menu from subsections explicitely.    ###
@@ -36,7 +36,8 @@ class UserClass:
 		self.password   = credentials[2]
 		self.cursor     = cursor
 		self.conn	= conn
-	def student_menu():
+
+	def student_menu(self):
 		print ('\n\n~~~~~~~~~~~~~~\n\nStudent Menu\n')
 		tryoptions  = True
 		while tryoptions:
@@ -53,11 +54,11 @@ class UserClass:
 			elif choice == 1:	self.Transcript()
 			elif choice == 2:	self.Enroll()
 			elif choice == 3:	self.Details()
-                        elif choice == 4:       self.Withdraw()
+                        elif choice == 4:   self.Withdraw()
 			else		:	print ('Invalid option. Try again.')
 
 	def current_courses(self):
-		dt = datetime.datetime.now()
+		dt = time.datetime.now()
 		current_Q = 'Q'+str(int(round(dt.month/3 + min([1,(dt.month%3)]))))
 		sql_script =    'select UoSCode, UoSName from  unitofstudy \
 				where UoSCode IN (select distinct UoSCode \
@@ -67,19 +68,18 @@ class UserClass:
         						'and Year='+str(dt.year)+')'
 		self.cursor.execute(sql_script)
 		return self.cursor.fetchall()
-		
+
 	def Enroll(self):
-		dt = datetime.datetime.now()
+		dt = time.datetime.now()
                 current_Q = 'Q'+str(int(round(dt.month/3 + min([1,(dt.month%3)]))))
 		next_Q = 'Q'+str(int(round(dt.month/3 + min([1,(dt.month%3)]))+1.))
-		sql_script = 	'select * from uosoffering
-				where ((Semester='+current_Q+ \
-					'or Semester='+next_Q+ \ 
-					')and Year='+str(dt.year)+')'
+		sql_script = 'select * from uosoffering where ((Semester='+current_Q+ \
+					'or Semester='+next_Q+ \
+			        ')and Year='+str(dt.year)+')'
 		self.cursor.execute(sql_script)
 		offered_courses = self.cursor.fetchall()
 		transcript = self.Transcript(return_courses=True)
-		
+
 		enroll_options = True
 		while enroll_courses:
 			onscreen =      ' Options \n ------ \n \
@@ -90,7 +90,7 @@ class UserClass:
 				proceed_enroll = True
 				crow = offered_courses[ [item[0] for item in offered_courses] \
 								.index(course_code)]
-				if int(crow[4]) >= int(crow[5]): 
+				if int(crow[4]) >= int(crow[5]):
 					print ('The course is already registered in full')
 					proceed_enroll = False
 				if proceed_enroll:
@@ -98,13 +98,13 @@ class UserClass:
                                         	      where UoSCode='+course_code
                                 	self.cursor.execute(sql_script)
                                 	prows = self.cursor.fetchall()
-				
+
 
 ################# Current Checkpoint ######
 
 
 
-	
+
                        	elif course_code == '0':
                                 enroll_options = False
                         else:
@@ -141,10 +141,10 @@ class UserClass:
 		else:
 			print ('\t'.join(['Year','Semester','CourseCode','Grade']))
 			for item in transcript:
-				if not item[-1]: 
+				if not item[-1]:
 					item[-1]='Incomplete/Fail'
 				print '\t'.join(item[1:])
-			
+
 			printcourse = True
 			while printcourse:
 				onscreen =	' Options \n ------ \n \
@@ -165,7 +165,7 @@ class UserClass:
 					printcourse = False
 				else:
 					print ('Invalid option/course. Try again.')
-		
+
 
 
 
@@ -203,7 +203,7 @@ def student_login(cursor,conn):
 
 def main():
         conn   = connect()
-        curosr = conn.cursor()
+        cursor = conn.cursor()
 
 	trylogin = 1
 	while trylogin:
