@@ -53,6 +53,7 @@ class UserClass:
 			elif choice == 1:	self.Transcript()
 			elif choice == 2:	self.Enroll()
 			elif choice == 3:	self.Details()
+                        elif choice == 4:       self.Withdraw()
 			else		:	print ('Invalid option. Try again.')
 
 	def current_courses(self):
@@ -61,34 +62,87 @@ class UserClass:
 		sql_script =    'select UoSCode, UoSName from  unitofstudy \
 				where UoSCode IN (select distinct UoSCode \
 							from transcript \
-							where StudId='+self.username+' \
-       							and Semester='+current_Q+' \
-        						and Year='+str(dt.year)+')'
+							where StudId='+self.username+ \
+       							'and Semester='+current_Q+ \
+        						'and Year='+str(dt.year)+')'
 		self.cursor.execute(sql_script)
-		(current_courses
-		('\n'.join(['\t'.join(item) for item in currc]))
-		return current_courses 			# As a list of strings
+		return self.cursor.fetchall()
 		
 	def Enroll(self):
-		sql_script = 	'select * from -----------'
+		dt = datetime.datetime.now()
+                current_Q = 'Q'+str(int(round(dt.month/3 + min([1,(dt.month%3)]))))
+		next_Q = 'Q'+str(int(round(dt.month/3 + min([1,(dt.month%3)]))+1.))
+		sql_script = 	'select * from uosoffering
+				where ((Semester='+current_Q+ \
+					'or Semester='+next_Q+ \ 
+					')and Year='+str(dt.year)+')'
 		self.cursor.execute(sql_script)
+		offered_courses = self.cursor.fetchall()
+		transcript = self.Transcript(return_courses=True)
+		
+		enroll_options = True
+		while enroll_courses:
+			onscreen =      ' Options \n ------ \n \
+                                         Enter course code for enrollment \n \
+                                         Enter 0 for returning to Student Menu'
+                        course_code = raw_input(onscreen)
+                        if course_code in [item[0] for item in offered_courses]:
+				proceed_enroll = True
+				crow = offered_courses[ [item[0] for item in offered_courses] \
+								.index(course_code)]
+				if int(crow[4]) >= int(crow[5]): 
+					print ('The course is already registered in full')
+					proceed_enroll = False
+				if proceed_enroll:
+                        		sql_script = 'select PrereqUoSCode from requires \
+                                        	      where UoSCode='+course_code
+                                	self.cursor.execute(sql_script)
+                                	prows = self.cursor.fetchall()
+				
+
+################# Current Checkpoint ######
+
+
+
+	
+                       	elif course_code == '0':
+                                enroll_options = False
+                        else:
+                                print ('Invalid option/course. Try again.')
+
+
+
+
+
 		self.conn.commit()
+
+
+
+        def Withdraw(self):
+                sql_script =    'select * from -----------'
+                self.cursor.execute(sql_script)
+                self.conn.commit()
 
 	def Details(self):
                 sql_script =    'select * from -----------'
 		self.cursor.execute(sql_script)
 
-	def Transcript(self):
+	def Transcript(self, return_courses=False):
 		sql_script = 	'select Year,Semester,UoSCode,Grade from transcript \
 				where StudId = '+str(self.username)+\
 				' order by Year ASC, Semester ASC'
 		self.cursor.execute(sql_script)
 		transcript = self.cursor.fetchall()
+		if return_courses:
+			return transcript
+
 		if not transcript:
 			print ('No transcript records')
 		else:
 			print ('\t'.join(['Year','Semester','CourseCode','Grade']))
 			for item in transcript:
+				if not item[-1]: 
+					item[-1]='Incomplete/Fail'
 				print '\t'.join(item[1:])
 			
 			printcourse = True
