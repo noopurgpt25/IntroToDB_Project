@@ -15,6 +15,6 @@ set Enrollment=Enrollment+1
 where UoSCode=CourseCode
 	and Semester=courseQ
     and Year=cYear;
-set FinalStatus=1;
+set FinalStatus=0;
     
 END
