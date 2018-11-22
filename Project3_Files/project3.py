@@ -294,16 +294,17 @@ class UserClass:
                                         	Enter 0 for returning to Student Menu \t'
 				course_code = raw_input(onscreen)
 				if course_code in [item[2] for item in transcript]:
-					sql_script = 'select * from unitofstudy \
-							where UoSCode="'+course_code+'"'
+					sql_script = 'select UosCode, UoSName, Semester, Year, Grade, Enrollment, MaxEnrollment, faculty.Name from  (select * from    (select * from transcript natural join unitofstudy where StudId = "'+str(self.username)+'") as T1   natural join uosoffering) T2 join faculty on T2.InstructorId = faculty.Id'
+
 					self.cursor.execute(sql_script)
 					crow = self.cursor.fetchall()
 					if not crow:
 						print ('Internal error: Course does not exist')
 					else:
-						crow = list(crow[0])
-						print ('Course Code {} \t DeptID {} \t Course_Name {} \t Credits {}'.\
-							format(crow[0],crow[1],crow[2],crow[3]))
+						crow = [str(jtem) for jtem in list(crow[0])]
+						print ('\t'.join(crow))
+						#print ('Course Code {} \t DeptID {} \t Course_Name {} \t Credits {}'.\
+#							format(crow[0],crow[1],crow[2],crow[3]))
 				elif course_code == '0':
 					printcourse = False
 				else:
