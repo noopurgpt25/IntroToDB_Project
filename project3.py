@@ -1,7 +1,7 @@
 from mysql.connector import MySQLConnection, Error
 from python_mysql_dbconfig import read_db_config
 import getpass
-import time
+import datetime
 
 def connect():
     db_config = read_db_config()
@@ -58,7 +58,7 @@ class UserClass:
 			else		:	print ('Invalid option. Try again.')
 
 	def current_courses(self):
-		dt = time.datetime.now()
+		dt = datetime.datetime.now()
 		current_Q = 'Q'+str(int(round(dt.month/3 + min([1,(dt.month%3)]))))
 		sql_script =    'select UoSCode, UoSName from  unitofstudy \
 				where UoSCode IN (select distinct UoSCode \
@@ -70,45 +70,47 @@ class UserClass:
 		return self.cursor.fetchall()
 
 	def Enroll(self):
-		dt = time.datetime.now()
-                cQ = int(round((dt.month-1)/3)+2)
+
+		dt = datetime.datetime.now()
+		cQ = int(round((dt.month-1)/3)+2)
 		nQ = cQ + 1
 		if cQ>4: cQ-=4
 		if nQ>4: nQ-=4
 		cQ='Q'+str(cQ)
 		nQ='Q'+str(nQ)
 		cYear  = dt.year
-		if nQ="Q2":	nYear  = dt.year+1 
+		if nQ == "Q2": nYear = dt.year+1
 		else: 	dt.year
 
-		sql_script = 'select * from uosoffering
-				where ((Semester='+cQ+' and Year='+str(cYear)+') or
+		sql_script = 'select * from uosoffering\
+				where ((Semester='+cQ+' and Year='+str(cYear)+') or\
 					Semester='+nQ+' and Year='+str(nYear)+')'
 		self.cursor.execute(sql_script)
 		offered_courses = self.cursor.fetchall()
 		print('Listing the offered Courses in this quarter and next')
 		print('CourseIndex\tCourseCode\tSemester\tYear\tText\tEnrolled\tMaxEnroll\tInstructorID')
 		for i,item in enumerate(offered_courses):
-			print (str(i+1)+'\t'+'\t'.join(item)
+			print (str(i+1))+'\t'+'\t'.join(item)
 		transcript = self.Transcript(return_courses=True)
 
 		enroll_options = True
-		while enroll_courses:
+		while enroll_options:
 			onscreen =      'Options \n ------ \n \
                                          Enter course index number for enrollment \n \
                                          Enter 0 for returning to Student Menu'
-                        course_idn 	= raw_input(onscreen)
+			course_idn 	= raw_input(onscreen)
 			
-                        if course_idn <= len(offered_courses):
-				course_code 	= offered_course[course_idn-1][0]
-				courseQ  	= offered_course[course_idn-1][1]
-				courseY		= offered_course[course_idn-1][2]
+        	if course_idn <= len(offered_courses):
+				course_code 	= offered_courses[course_idn-1][0]
+				courseQ  	= offered_courses[course_idn-1][1]
+				courseY		= offered_courses[course_idn-1][2]
 				args 	= (self.username,course_code,courseQ,courseY,0)
+
 				try:
-	                        	enroll_error = cursor.callproc('Check_Enroll',args)[-1]
+	                enroll_error = self.cursor.callproc('Check_Enroll',args)[-1]
 					if not enroll_error:
 						try:
-							_ = cursor.callproc('Enroll_Student',args)
+							_ = self.cursor.callproc('Enroll_Student',args)
 							self.conn.commit()
 							print('Enrolled successfully')
 						except:
@@ -121,21 +123,21 @@ class UserClass:
 					elif enroll_error == 3:
 						print('Some prerequisite conditions are not met. Cannot enroll')
 						print('Lacking Prerequisites')
-						for result in cursor.stored_results():
+						for result in self.cursor.stored_results():
 							 print(str(result.fetchall()[0][0]))
 				except:
 					print('Some internal error occurred. Could not enroll. Try again.')
 
-                       	elif course_code == '0':
-                                enroll_options = False
+            elif course_code == '0':
+                enroll_options = False
 				print ('Returning to Student menu \n\n\n')
-                        else:
-                                print ('Invalid option/course. Try again.')
+        	else:
+            	print ('Invalid option/course. Try again.')
 
 
 
-        def Withdraw(self):
-		dt = time.datetime.now()
+    def Withdraw(self):
+		dt = datetime.datetime.now()
                 cQ = int(round((dt.month-1)/3)+2)
 		nQ = cQ + 1
 		if cQ>4: cQ-=4
@@ -145,9 +147,9 @@ class UserClass:
 		cYear  = dt.year
 		nYear  = dt.year+1 if nQ="Q2" else dt.year
 
-		sql_script = 'select UoSCode,Semester,Year from transcript 
-				where ((Semester='+cQ+' and Year='+str(cYear)+') or
-					Semester='+nQ+' and Year='+str(nYear)+')
+		sql_script = 'select UoSCode,Semester,Year from transcript \
+				where ((Semester='+cQ+' and Year='+str(cYear)+') or\
+					Semester='+nQ+' and Year='+str(nYear)+')\
 					and studId='+str(self.username)
 		self.cursor.execute(sql_script)
 		current_courses = self.cursor.fetchall()
@@ -157,19 +159,19 @@ class UserClass:
 			print (str(i+1)+'\t'+'\t'.join(item)
 
 		withdraw_options = True
-		while withdraw_courses:
+		while withdraw_options:
 			onscreen =      'Options \n ------ \n \
                                          Enter course index number for withdrawal \n \
                                          Enter 0 for returning to Student Menu'
                         course_idn 	= raw_input(onscreen)
 			
                         if course_idn <= len(current_courses):
-				course_code 	= offered_course[course_idn-1][0]
-				courseQ  	= offered_course[course_idn-1][1]
-				courseY		= offered_course[course_idn-1][2]
+				course_code 	= current_courses[course_idn-1][0]
+				courseQ  	= current_courses[course_idn-1][1]
+				courseY		= current_courses[course_idn-1][2]
 				args 	= (self.username,course_code,courseQ,courseY,0)
 				try:
-	                        	enroll_error = cursor.callproc('Withdraw',args)[-1]
+	                        	enroll_error = self.cursor.callproc('Withdraw',args)[-1]
 					if not enroll_error:
 						self.conn.commit()
 					elif enroll_error == 1:
