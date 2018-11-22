@@ -50,7 +50,7 @@ class UserClass:
                                         Withdraw        \t 3 \n \
 					Personal Info 	\t 4 \n \
 					Logout 		\t 0 \n'
-			choice   = input(onscreen)
+			choice   = inputit(onscreen)
 			if not choice	: 	tryoptions = False
 			elif choice == 1:	self.Transcript()
 			elif choice == 2:	self.Enroll()
@@ -103,7 +103,7 @@ class UserClass:
 			onscreen =      'Options \n ------ \n \
                                          Enter course index number for enrollment \n \
                                          Enter 0 for returning to Student Menu'
-			course_idn 	= input(onscreen)
+			course_idn 	= inputit(onscreen)
 			
         		if course_idn <= len(offered_courses) and course_idn>0:
 				course_code 	= offered_courses[course_idn-1][0]
@@ -170,7 +170,7 @@ class UserClass:
 			onscreen =      'Options \n ------ \n \
                                          Enter course index number for withdrawal \n \
                                          Enter 0 for returning to Student Menu'
-                        course_idn 	= input(onscreen)
+                        course_idn 	= inputit(onscreen)
 			
                         if course_idn <= len(current_courses) and course_idn>0:
 				course_code 	= current_courses[course_idn-1][0]
@@ -186,7 +186,6 @@ class UserClass:
 					flag_sql = self.cursor.fetchone()[0]
                                         self.cursor.execute('set @flag=0')
 					self.conn.commit()
-					print flag_sql
 					if flag_sql==1:
 						print('Enrollment is below 50 percentage')
 					if enroll_error == 1:
@@ -220,10 +219,10 @@ class UserClass:
 
 	        edit_flag = True
         	while edit_flag:
-            		option = input ("Enter 1 to edit information or 0 to go back to main menu:")
+            		option = inputit("Enter 1 to edit information or 0 to go back to main menu:")
 
             		if option == 1:
-				edit_code = input ('Enter code to edit any information')
+				edit_code = inputit('Enter code to edit any information')
 
                 		if edit_code == 1 or edit_code == 2:
                     			print("Cannot change id or name")
@@ -338,11 +337,15 @@ def student_login(cursor,conn):
 		else:
 			print ('credentials were not entered')
 
-		trylogin = input('Try again? (1 for yes / 0 for no)\t')
+		trylogin = inputit('Try again? (1 for yes / 0 for no)\t')
 	print ('Could not login. If necessary, contact the admin at dumbledore@hogwarts.edu')
 	return
 
-
+def inputit(onscreen):
+	value = raw_input(onscreen)
+	while value =="":
+		value = raw_input(onscreen)
+	return int(value)
 
 
 def main():
@@ -353,7 +356,7 @@ def main():
 	while trylogin:
 	        user = student_login(cursor,conn)
         	if user:  user.student_menu()
-		trylogin = input('Continue to login screen again? (yes/no) == (1/0)')
+		trylogin = inputit('Continue to login screen again? (yes/no) == (1/0)')
         print ('Exiting the scripts')
 
 
