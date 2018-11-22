@@ -179,13 +179,21 @@ class UserClass:
 				args 	= (self.username,course_code,courseQ,courseY,0)
 				try:
 	                        	enroll_error = self.cursor.callproc('Withdraw',args)[-1]
-					print (enroll_error)
-					#if not enroll_error:
 					self.conn.commit()
 					print ('Success. Withdrawn.')
-					#elif enroll_error == 1:
-					#	print('Grade is assigned for this course. Cannot withdraw')
-					#	self.conn.rollback()
+
+					self.cursor.execute('select @flag')
+					flag_sql = self.cursor.fetchone()[0]
+                                        self.cursor.execute('set @flag=0')
+					self.conn.commit()
+					print flag_sql
+					if flag_sql==1:
+						print('Enrollment is below 50 percentage')
+					if enroll_error == 1:
+						print('Grade is assigned for this course. Cannot withdraw')
+						self.conn.rollback()
+					self.cursor.execute('set @flag=0')
+                                        self.conn.commit()
 				except Error as error:
 					self.conn.rollback()
 					print(error)
@@ -330,7 +338,7 @@ def student_login(cursor,conn):
 		else:
 			print ('credentials were not entered')
 
-		trylogin = input('Try again? (1 for yes / 0 for no)')
+		trylogin = input('Try again? (1 for yes / 0 for no)\t')
 	print ('Could not login. If necessary, contact the admin at dumbledore@hogwarts.edu')
 	return
 
