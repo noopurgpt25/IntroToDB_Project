@@ -134,9 +134,54 @@ class UserClass:
 
 
         def Withdraw(self):
-                sql_script =    'select * from -----------'
-                self.cursor.execute(sql_script)
-                self.conn.commit()
+		dt = time.datetime.now()
+                cQ = int(round((dt.month-1)/3)+2)
+		nQ = cQ + 1
+		if cQ>4: cQ-=4
+		if nQ>4: nQ-=4
+		cQ='Q'+str(cQ)
+		nQ='Q'+str(nQ)
+		cYear  = dt.year
+		nYear  = dt.year+1 if nQ="Q2" else dt.year
+
+		sql_script = 'select UoSCode,Semester,Year from transcript 
+				where ((Semester='+cQ+' and Year='+str(cYear)+') or
+					Semester='+nQ+' and Year='+str(nYear)+')
+					and studId='+str(self.username)
+		self.cursor.execute(sql_script)
+		current_courses = self.cursor.fetchall()
+		print('Listing the offered Courses Enrolled in this quarter and next')
+		print('CourseIndex\tCourseCode\tSemester\tYear')
+		for i,item in enumerate(current_courses):
+			print (str(i+1)+'\t'+'\t'.join(item)
+
+		withdraw_options = True
+		while withdraw_courses:
+			onscreen =      'Options \n ------ \n \
+                                         Enter course index number for withdrawal \n \
+                                         Enter 0 for returning to Student Menu'
+                        course_idn 	= raw_input(onscreen)
+			
+                        if course_idn <= len(current_courses):
+				course_code 	= offered_course[course_idn-1][0]
+				courseQ  	= offered_course[course_idn-1][1]
+				courseY		= offered_course[course_idn-1][2]
+				args 	= (self.username,course_code,courseQ,courseY,0)
+				try:
+	                        	enroll_error = cursor.callproc('Withdraw',args)[-1]
+					if not enroll_error:
+						self.conn.commit()
+					elif enroll_error == 1:
+						print('Grade is assigned for this course. Cannot withdraw')
+						self.conn.rollback()
+				except:
+					print('Some internal error occurred. Could not withdraw. Try again.')
+
+                       	elif course_code == '0':
+                                withdraw_options = False
+				print ('Returning to Student menu \n\n\n')
+                        else:
+                                print ('Invalid option/course. Try again.')
 
 	def Details(self):
                 sql_script =    'select * from -----------'
