@@ -59,13 +59,16 @@ class UserClass:
 
 	def current_courses(self):
 		dt = datetime.datetime.now()
-		current_Q = 'Q'+str(int(round(dt.month/3 + min([1,(dt.month%3)]))))
+		cQ = int(round((dt.month-1)/3)+2)
+                if cQ>4: cQ-=4
+                cQ='Q'+str(cQ)
+
 		sql_script =    'select UoSCode, UoSName from  unitofstudy \
 				where UoSCode IN (select distinct UoSCode \
 							from transcript \
-							where StudId='+self.username+ \
-       							'and Semester='+current_Q+ \
-        						'and Year='+str(dt.year)+')'
+							where StudId='+str(self.username)+ \
+       							' and Semester="'+cQ+ \
+        						'" and Year='+str(dt.year)+')'
 		self.cursor.execute(sql_script)
 		return self.cursor.fetchall()
 
@@ -107,7 +110,7 @@ class UserClass:
 				args 	= (self.username,course_code,courseQ,courseY,0)
 
 				try:
-	                enroll_error = self.cursor.callproc('Check_Enroll',args)[-1]
+	                		enroll_error = self.cursor.callproc('Check_Enroll',args)[-1]
 					if not enroll_error:
 						try:
 							_ = self.cursor.callproc('Enroll_Student',args)
@@ -128,15 +131,15 @@ class UserClass:
 				except:
 					print('Some internal error occurred. Could not enroll. Try again.')
 
-            elif course_code == '0':
-                enroll_options = False
-				print ('Returning to Student menu \n\n\n')
+            	elif course_code == '0':
+                	enroll_options = False
+			print ('Returning to Student menu \n\n\n')
         	else:
-            	print ('Invalid option/course. Try again.')
+            		print ('Invalid option/course. Try again.')
 
 
 
-    def Withdraw(self):
+	def Withdraw(self):
 		dt = datetime.datetime.now()
                 cQ = int(round((dt.month-1)/3)+2)
 		nQ = cQ + 1
@@ -145,7 +148,8 @@ class UserClass:
 		cQ='Q'+str(cQ)
 		nQ='Q'+str(nQ)
 		cYear  = dt.year
-		nYear  = dt.year+1 if nQ="Q2" else dt.year
+		if nQ == "Q2": nYear = dt.year+1
+                else:   dt.year
 
 		sql_script = 'select UoSCode,Semester,Year from transcript \
 				where ((Semester='+cQ+' and Year='+str(cYear)+') or\
@@ -156,7 +160,7 @@ class UserClass:
 		print('Listing the offered Courses Enrolled in this quarter and next')
 		print('CourseIndex\tCourseCode\tSemester\tYear')
 		for i,item in enumerate(current_courses):
-			print (str(i+1)+'\t'+'\t'.join(item)
+			print (str(i+1)+'\t'+'\t'.join(item))
 
 		withdraw_options = True
 		while withdraw_options:
@@ -187,67 +191,66 @@ class UserClass:
                                 print ('Invalid option/course. Try again.')
 
 
-    def Details(self):
-        sql_script = 'select * from student where Id = ' + str (self.usernmae)
-        self.cursor.execute (sql_script)
-        details = self.cursor.fetchall ()
+	def Details(self):
+        	sql_script = 'select * from student where Id = ' + str (self.usernmae)
+        	self.cursor.execute (sql_script)
+        	details = self.cursor.fetchall ()
 
-        if details:
-            for record in details:
-                print ('\t'.join ('1', 'Id:', str (record[0])))
-                print ('\t'.join ('2', 'Name:', record[1]))
-                print ('\t'.join ('3', 'Password:', record[2]))
-                print ('\t'.join ('4', 'Address:', record[3]))
+	        if details:
+        	    for record in details:
+                	print ('\t'.join ('1', 'Id:', str (record[0])))
+                	print ('\t'.join ('2', 'Name:', record[1]))
+                	print ('\t'.join ('3', 'Password:', record[2]))
+                	print ('\t'.join ('4', 'Address:', record[3]))
 
-        edit_flag = True
-        while edit_flag:
-            option = raw_input ("Enter 1 to edit information or 0 to go back to main menu:")
+	        edit_flag = True
+        	while edit_flag:
+            		option = raw_input ("Enter 1 to edit information or 0 to go back to main menu:")
 
-            if option == 1:
+            		if option == 1:
+				edit_code = raw_input ('Enter code to edit any information')
 
-                edit_code = raw_input ('Enter code to edit any information')
+                		if edit_code == 1 or edit_code == 2:
+                    			print("Cannot change id or name")
+                    			continue
 
-                if edit_code == 1 or edit_code == 2:
-                    print("Cannot change id or name")
-                    continue
+	                	elif edit_code == 3:
+        	        		new_password = raw_input ("Enter new Password:")
+                	 		sql_update_pwd = 'update student set Password = ' + new_password + ' where\
+                        			                Id = ' + str (self.username)
+                 			try:
+                        			self.cursor.execute (sql_update_pwd)
+                        			self.conn.commit ()
 
-                elif edit_code == 3:
-                    new_password = raw_input ("Enter new Password:")
-                    sql_update_pwd = 'update student set Password = ' + new_password + ' where\
-                                        Id = ' + str (self.username)
-                    try:
-                        self.cursor.execute (sql_update_pwd)
-                        self.conn.commit ()
+                    			except Error as error:
+                		        	print(error)
+                     				self.conn.rollback()
+        	                		continue
+		
+                		elif edit_code == 4:
+                    			new_address = raw_input ("Enter new Address:")
+                    			sql_update_adrs = 'update student set Address = ' + new_address + ' where\
+                               			             Id = ' + str (self.username)
+                    			try:
+                        			self.cursor.execute (sql_update_adrs)
+                        			self.conn.commit ()
 
-                    except Error as error:
-                        print(error)
-                        self.conn.rollback()
-                        continue
+                    			except Error as error:
+                        			print(error)
+                        			self.conn.rollback()
+                        			continue
 
-                elif edit_code == 4:
-                    new_address = raw_input ("Enter new Address:")
-                    sql_update_adrs = 'update student set Address = ' + new_address + ' where\
-                                            Id = ' + str (self.username)
-                    try:
-                        self.cursor.execute (sql_update_adrs)
-                        self.conn.commit ()
+                		else:
+                    			print("Invalid option chosen!")
+                    			continue
 
-                    except Error as error:
-                        print(error)
-                        self.conn.rollback()
-                        continue
+         	   	elif option == 0:
+                		return
 
-                else:
-                    print("Invalid option chosen!")
-                    continue
+            		else:
+                		print("Enter either 0 or 1")
 
-            elif option == 0:
-                return
-
-            else:
-                print("Enter either 0 or 1")
-
-    def Transcript(self, return_courses=False):
+	def Transcript(self, return_courses=False):
 		sql_script = 	'select Year,Semester,UoSCode,Grade from transcript \
 				where StudId = '+str(self.username)+\
 				' order by Year ASC, Semester ASC'
@@ -261,15 +264,17 @@ class UserClass:
 		else:
 			print ('\t'.join(['Year','Semester','CourseCode','Grade']))
 			for item in transcript:
+				item = list(item)
 				if not item[-1]:
 					item[-1]='Incomplete/Fail'
-				print '\t'.join(item[1:])
+				item[0] = str(item[0])
+				print '\t'.join(item)
 
 			printcourse = True
 			while printcourse:
 				onscreen =	' Options \n ------ \n \
                                 	        Enter course code for course details \n \
-                                        	Enter 0 for returning to Student Menu'
+                                        	Enter 0 for returning to Student Menu \t'
 				course_code = raw_input(onscreen)
 				if course_code in [item[0] for item in transcript]:
 					sql_script = 'select * from unitofstudy \
@@ -300,7 +305,7 @@ def student_login(cursor,conn):
 				sql_script = 	'select Id,Name,Password \
 						from student \
 						where (Id = '+s_username+\
-						' and Password = '+s_password+')'
+						' and Password = "'+s_password+'")'
 				cursor.execute(sql_script)
 				srow = cursor.fetchone()
 				if srow:
