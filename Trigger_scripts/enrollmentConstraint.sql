@@ -1,13 +1,21 @@
+DROP PROCEDURE IF EXISTS enrollmentWarning;
 DROP TRIGGER IF EXISTS enrollmentConstraint;
+
+delimiter $$
+
+create procedure enrollmentWarning(out flag int)
+begin
+	set flag = 1;
+end
 
 delimiter $$
 
 create trigger enrollmentConstraint after update on uosoffering 
 for each row
 begin
-	if exists(select enrollment from uosoffering where UoSCode = NEW.UoSCode and NEW.enrollment < floor(MaxEnrollment/2))
+	if  (NEW.enrollment < MaxEnrollment*0.5)
 	then 
-		SIGNAL SQLSTATE '12345' SET MESSAGE_TEXT = 'Enrollment below 50%';
+		call enrollmentWarning(@flag);
 	end if;
 end
 
