@@ -71,50 +71,65 @@ class UserClass:
 
 	def Enroll(self):
 		dt = time.datetime.now()
-                current_Q = 'Q'+str(int(round(dt.month/3 + min([1,(dt.month%3)]))))
-		next_Q = 'Q'+str(int(round(dt.month/3 + min([1,(dt.month%3)]))+1.))
-		sql_script = 'select * from uosoffering where ((Semester='+current_Q+ \
-					'or Semester='+next_Q+ \
-			        ')and Year='+str(dt.year)+')'
+                cQ = int(round((dt.month-1)/3)+2)
+		nQ = cQ + 1
+		if cQ>4: cQ-=4
+		if nQ>4: nQ-=4
+		cQ='Q'+str(cQ)
+		nQ='Q'+str(nQ)
+		cYear  = dt.year
+		nYear  = dt.year+1 if nQ="Q2" else dt.year
+
+		sql_script = 'select * from uosoffering 
+				where ((Semester='+cQ+' and Year='+str(cYear)+') or
+					Semester='+nQ+' and Year='+str(nYear)+')'
 		self.cursor.execute(sql_script)
 		offered_courses = self.cursor.fetchall()
+		print('Listing the offered Courses in this quarter and next')
+		print('CourseIndex\tCourseCode\tSemester\tYear\tText\tEnrolled\tMaxEnroll\tInstructorID')
+		for i,item in enumerate(offered_courses):
+			print (str(i+1)+'\t'+'\t'.join(item)
 		transcript = self.Transcript(return_courses=True)
 
 		enroll_options = True
 		while enroll_courses:
-			onscreen =      ' Options \n ------ \n \
-                                         Enter course code for enrollment \n \
+			onscreen =      'Options \n ------ \n \
+                                         Enter course index number for enrollment \n \
                                          Enter 0 for returning to Student Menu'
-                        course_code = raw_input(onscreen)
-                        if course_code in [item[0] for item in offered_courses]:
-				proceed_enroll = True
-				crow = offered_courses[ [item[0] for item in offered_courses] \
-								.index(course_code)]
-				if int(crow[4]) >= int(crow[5]):
-					print ('The course is already registered in full')
-					proceed_enroll = False
-				if proceed_enroll:
-                        		sql_script = 'select PrereqUoSCode from requires \
-                                        	      where UoSCode='+course_code
-                                	self.cursor.execute(sql_script)
-                                	prows = self.cursor.fetchall()
-
-
-################# Current Checkpoint ######
-
-
-
+                        course_idn 	= raw_input(onscreen)
+			
+                        if course_idn <= len(offered_courses):
+				course_code 	= offered_course[course_idn-1][0]
+				courseQ  	= offered_course[course_idn-1][1]
+				courseY		= offered_course[course_idn-1][2]
+				args 	= (self.username,course_code,courseQ,courseY,0)
+				try:
+	                        	enroll_error = cursor.callproc('Check_Enroll',args)[-1]
+					if not enroll_error:
+						try:
+							_ = cursor.callproc('Enroll_Student',args)
+							self.conn.commit()
+							print('Enrolled successfully')
+						except:
+							self.conn.rollback() 
+							print('Eligible to enroll. But some internal error occurred')
+					elif enroll_error == 1:
+						print('The student has already enrolled/finished/failed this course. Cannot enroll')
+					elif enroll_error == 2:
+						print('Course is full. Cannot enroll')
+					elif enroll_error == 3:
+						print('Some prerequisite conditions are not met. Cannot enroll')
+						print('Lacking Prerequisites')
+						for result in cursor.stored_results():
+							 print(str(result.fetchall()[0][0]))
+				except:
+					print('Some internal error occurred. Could not enroll. Try again.')
 
                        	elif course_code == '0':
                                 enroll_options = False
+				print ('Returning to Student menu \n\n\n')
                         else:
                                 print ('Invalid option/course. Try again.')
-
-
-
-
-
-		self.conn.commit()
 
 
 
