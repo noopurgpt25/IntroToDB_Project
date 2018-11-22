@@ -15,3 +15,6 @@ where ((Semester="Q1" or Semester="Q2")
         
         
 select * from student;
+
+select * from whenoffered;
+select * from uosoffering;

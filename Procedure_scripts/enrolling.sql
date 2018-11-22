@@ -3,9 +3,9 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `Enroll_Student`(
     IN CourseCode 	varchar(20),
     IN courseQ 	varchar(10),
     IN cYear		varchar(10),
-    OUT FinalStatus varchar(64))
+    OUT FinalError varchar(64))
 enrolling:BEGIN
-set FinalStatus = NULL;
+set FinalError = 1;
 
 insert into transcript
 values(studentID,CourseCode,courseQ,cYear,Null);
@@ -15,6 +15,6 @@ set Enrollment=Enrollment+1
 where UoSCode=CourseCode
 	and Semester=courseQ
     and Year=cYear;
-set FinalStatus=0;
+set FinalError=0;
     
 END
