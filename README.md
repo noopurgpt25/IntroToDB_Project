@@ -1,6 +1,11 @@
 # IntroToDB_Project
-Class project
+Class project EECS 495 
+Northwestern University
 
-Notes:
+Used:
+Triggers
+Procedures
+MySQL
+Python
 
-1. We need a function that allows to return to the main menu.
+Ceasar platform
