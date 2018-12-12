@@ -13,7 +13,7 @@ delimiter $$
 create trigger enrollmentConstraint after update on uosoffering 
 for each row
 begin
-	if  (NEW.enrollment < MaxEnrollment*0.5)
+	if  (NEW.enrollment < NEW.MaxEnrollment*0.5)
 	then 
 		call enrollmentWarning(@flag);
 	end if;

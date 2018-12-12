@@ -301,7 +301,9 @@ class UserClass:
 					if not crow:
 						print ('Internal error: Course does not exist')
 					else:
-						crow = [str(jtem) for jtem in list(crow[0])]
+						tmplist = [crtem[0] for crtem in crow]
+						cidx = tmplist.index(course_code)
+						crow = [str(jtem) for jtem in list(crow[cidx])]
 						print ('\t'.join(crow))
 						#print ('Course Code {} \t DeptID {} \t Course_Name {} \t Credits {}'.\
 #							format(crow[0],crow[1],crow[2],crow[3]))
