@@ -21,14 +21,6 @@ def connect():
 
 
 
-
-#######################################################################
-###########           Notes                             ###############
-## 1. No need to call Student menu from subsections explicitely.    ###
-##    Automatic return is implemented with while loop               ###
-## 2. SQL commands are yet to be written                            ###
-#######################################################################
-
 class UserClass:
 	def __init__(self,cursor,conn,credentials):
 		self.username   = credentials[0]
