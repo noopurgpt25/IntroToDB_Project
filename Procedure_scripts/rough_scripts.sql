@@ -6,6 +6,7 @@ select @errorstatus;
 
 select * from transcript
 where StudId=3213 and Year=2018;
+
 call Withdraw(3213,"INFO3402","Q1",2018,@errorstatus);
 
 select * from transcript;
@@ -18,7 +19,7 @@ where ((Semester="Q1" or Semester="Q2")
 select * from student;
 
 select * from uosoffering
-where UoSCode="COMP3615";
+where UoSCode="INFO2120";
         
 select * from student;
 select * from unitofstudy;
@@ -27,3 +28,19 @@ select * from uosoffering;
 
 
 select * from transcript;
+
+
+
+set @flag=0;
+select @flag;
+
+
+select *
+from	(((select * 
+		from transcript
+		where StudId=3213) as TM0
+        natural join unitofstudy) as TM1
+		join faculty on Id=InstructorId);
+
+
+
